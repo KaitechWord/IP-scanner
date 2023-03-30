@@ -9,6 +9,78 @@ import pickle
 import asyncio
 import time
 
+
+def scan_ipv6_range(ip):
+    print("range")
+    result = scan_ip(ip)
+    yield (result[0], ip, *result[1:3])
+    if result[1]:
+        print("IPv6 found!: " + str(ip))
+        range_step = 2 ** 10  # needs to be adjusted
+        ipv6_found = True
+        range_up = ip
+        current_up = ip + 1
+        while ipv6_found:
+            ipv6_found = False
+            range_up += range_step
+            while current_up < ip + range_up:
+                result_up = scan_ip(current_up)
+                if result_up[1]:
+                    yield (result[0], current_up, *result_up[1:3])
+                    ipv6_found = True
+                current_up += 1
+        ipv6_found = True
+        range_down = ip
+        current_down = ip - 1
+        while ipv6_found:
+            ipv6_found = False
+            range_down -= range_step
+            while current_up > ip - range_down:
+                result_down = scan_ip(current_down)
+                if result_down[0]:
+                    yield (result[0], current_down, *result_down[1:3])
+                    ipv6_found = True
+                current_up -= 1
+        current = current_up
+        # TODO
+
+
+def scan_ipv6_range_nmap(ip):
+    print("range")
+    nm = nmap.PortScanner()
+    result = nm.scan(hosts=str(ip), ports='443')
+    print(result)
+    if result[1]:
+        print("IPv6 found!: " + str(ip))
+        range_step = 2 ** 10  # needs to be adjusted
+        ipv6_found = True
+        range_up = ip
+        current_up = ip + 1
+        while ipv6_found:
+            ipv6_found = False
+            range_up += range_step
+            while current_up < ip + range_up:
+                result_up = scan_ip(current_up)
+                if result_up[1]:
+                    yield (result[0], current_up, *result_up[1:3])
+                    ipv6_found = True
+                current_up += 1
+        ipv6_found = True
+        range_down = ip
+        current_down = ip - 1
+        while ipv6_found:
+            ipv6_found = False
+            range_down -= range_step
+            while current_up > ip - range_down:
+                result_down = scan_ip(current_down)
+                if result_down[0]:
+                    yield (result[0], current_down, *result_down[1:3])
+                    ipv6_found = True
+                current_up -= 1
+        current = current_up
+        # TODO
+
+
 def scan_ip(ip):
     print(str(ip))
     start = time.time()
@@ -39,6 +111,7 @@ def scan_ip(ip):
     client.close()
     return endTime, True, client.get_transport().get_remote_server_key().get_base64()
 
+
 def scan_ipv6_net(net: ipaddress.IPv6Network):
     print("ipv6 scanning started")
     size = net.num_addresses
@@ -50,9 +123,8 @@ def scan_ipv6_net(net: ipaddress.IPv6Network):
         result = scan_ip(current)
         yield (result[0], current, *result[1:3])
         if result[1]:
-            True
             print("IPv6 found!: " + current)
-            range_step = 2 ** 64  # needs to be adjusted
+            range_step = 2 ** 10  # needs to be adjusted
             ipv6_found = True
             range_up = current
             current_up = current + 1
@@ -77,6 +149,7 @@ def scan_ipv6_net(net: ipaddress.IPv6Network):
                         yield (result[0], current_down, *result_down[1:3])
                         ipv6_found = True
                     current_up -= 1
+            current = current_up
             # TODO
 
         current += step
@@ -132,11 +205,16 @@ def scan_asn(asn, ips):
                     print("NotFound time: ", notfound_time / counter_notfound)
                     quit()
 
+
 def main():
-    # start = time.time()
-    # scan_ip('2001:4860:4860::8888')
-    # end = time.time()
-    # print("Time: ", end - start)
+    print("?!?!?!?!?!")
+    result = scan_ipv6_range(ipaddress.ip_address("2a01:9460::1"))
+    print(list(result))
+    result = scan_ipv6_range(ipaddress.ip_address("2a0a:89c0::1"))
+    print(list(result))
+    result = scan_ipv6_range(ipaddress.ip_address("2a01:8280:dc00::1"))
+    print(list(result))
+    print("slychacmnie")
     with open('addrs.pickle', 'rb') as f:
         addrs = pickle.load(f)
     try:
@@ -161,7 +239,6 @@ def main():
                 presence[type].append(ip)
         with open('fingerprints.pickle', 'wb') as f:
             pickle.dump((asn, fingerprints, presence), f)
-
 
 
 if __name__ == "__main__":
