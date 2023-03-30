@@ -46,23 +46,27 @@ def scan_ipv6_range(ip):
 
 
 def scan_ipv6_range_nmap(ip):
-    print("range")
+    print("range_nmap")
+    print(str(ip))
+    ip = ipaddress.IPv6Address(ip)
     nm = nmap.PortScanner()
-    result = nm.scan(hosts=str(ip), ports='443')
+    result = nm.scan(hosts=str(ip), ports='443', arguments='-nP -6')
     print(result)
-    if result[1]:
+    if result['scan']:
         print("IPv6 found!: " + str(ip))
-        range_step = 2 ** 10  # needs to be adjusted
+        range_step = 3  # needs to be adjusted
         ipv6_found = True
         range_up = ip
         current_up = ip + 1
         while ipv6_found:
             ipv6_found = False
             range_up += range_step
-            while current_up < ip + range_up:
-                result_up = scan_ip(current_up)
-                if result_up[1]:
-                    yield (result[0], current_up, *result_up[1:3])
+            while current_up < range_up:
+                print("Current up: " + str(current_up))
+                result_up = nm.scan(hosts=str(current_up), ports='443', arguments='-nP -6')
+                if result_up['scan']:
+                    print("IPv6 found in the range!: ", result_up)
+                    print(result_up['scan'][str(ip)]['addresses'])
                     ipv6_found = True
                 current_up += 1
         ipv6_found = True
@@ -71,12 +75,14 @@ def scan_ipv6_range_nmap(ip):
         while ipv6_found:
             ipv6_found = False
             range_down -= range_step
-            while current_up > ip - range_down:
-                result_down = scan_ip(current_down)
-                if result_down[0]:
-                    yield (result[0], current_down, *result_down[1:3])
+            while current_down > range_down:
+                print("Current down: " + str(current_down))
+                result_down = nm.scan(hosts=str(current_down), ports='443', arguments='-nP -6')
+                if result_down['scan']:
+                    print("IPv6 found in the lower range!: ", result_down)
+                    print(result_down['scan'][str(ip)]['addresses'])
                     ipv6_found = True
-                current_up -= 1
+                current_down -= 1
         current = current_up
         # TODO
 
@@ -207,13 +213,9 @@ def scan_asn(asn, ips):
 
 
 def main():
-    print("?!?!?!?!?!")
-    result = scan_ipv6_range(ipaddress.ip_address("2a01:9460::1"))
-    print(list(result))
-    result = scan_ipv6_range(ipaddress.ip_address("2a0a:89c0::1"))
-    print(list(result))
-    result = scan_ipv6_range(ipaddress.ip_address("2a01:8280:dc00::1"))
-    print(list(result))
+    scan_ipv6_range_nmap("2a01:9460::1")
+    scan_ipv6_range_nmap("2a0a:89c0::1")
+    scan_ipv6_range_nmap("2a01:8280:dc00::1")
     print("slychacmnie")
     with open('addrs.pickle', 'rb') as f:
         addrs = pickle.load(f)
