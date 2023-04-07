@@ -10,14 +10,13 @@ import asyncio
 import time
 
 def scan_ipv6_range_nmap(ip):
-    print("range_nmap")
-    print(str(ip))
+    print("Starting IP: " + str(ip))
     ip = ipaddress.IPv6Address(ip)
     nm = nmap.PortScanner()
     result = nm.scan(hosts=str(ip), ports='443', arguments='-nP -6')
     if result['scan']:
         print("IPv6 found!: " + str(ip))
-        print(result['scan'][str(ip)]['addresses'])
+        print("Addresses: ", result['scan'][str(ip)]['addresses'])
         range_step = 1000000  # to be adjusted
         ipv6_found = True
         range_up = ip
@@ -30,7 +29,7 @@ def scan_ipv6_range_nmap(ip):
                 result_up = nm.scan(hosts=str(current_up), ports='443', arguments='-nP -6')
                 if result_up['scan']:
                     print("IPv6 found in the range!: ", result_up)
-                    print(result_up['scan'][str(ip)]['addresses'])
+                    print("Addresses: ", result_up['scan'][str(ip)]['addresses'])
                     ipv6_found = True
                 current_up += 1
         ipv6_found = True
@@ -44,7 +43,7 @@ def scan_ipv6_range_nmap(ip):
                 result_down = nm.scan(hosts=str(current_down), ports='443', arguments='-nP -6')
                 if result_down['scan']:
                     print("IPv6 found in the lower range!: ", result_down)
-                    print(result_down['scan'][str(ip)]['addresses'])
+                    print("Addresses: ", result_down['scan'][str(ip)]['addresses'])
                     ipv6_found = True
                 current_down -= 1
         current = current_up
