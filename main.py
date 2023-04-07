@@ -51,10 +51,10 @@ def scan_ipv6_range_nmap(ip):
     ip = ipaddress.IPv6Address(ip)
     nm = nmap.PortScanner()
     result = nm.scan(hosts=str(ip), ports='443', arguments='-nP -6')
-    print(result)
     if result['scan']:
         print("IPv6 found!: " + str(ip))
-        range_step = 3  # needs to be adjusted
+        print(result['scan'][str(ip)]['addresses'])
+        range_step = 1000000  # to be adjusted
         ipv6_found = True
         range_up = ip
         current_up = ip + 1
@@ -216,7 +216,6 @@ def main():
     scan_ipv6_range_nmap("2a01:9460::1")
     scan_ipv6_range_nmap("2a0a:89c0::1")
     scan_ipv6_range_nmap("2a01:8280:dc00::1")
-    print("slychacmnie")
     with open('addrs.pickle', 'rb') as f:
         addrs = pickle.load(f)
     try:
